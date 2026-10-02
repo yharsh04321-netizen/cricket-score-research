@@ -1,0 +1,10 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}iframe{border:0;width:100%;height:100%;display:block}</style></head><body><iframe id="score" allowtransparency="true"></iframe><script>
+const params=new URLSearchParams(location.search);
+const id=params.get("match_id")||"";
+const frame=document.getElementById("score");
+frame.src="/scoreboard?match_id="+encodeURIComponent(id);
+function align(){try{const d=frame.contentDocument;if(!d||!d.body)return;const sides=d.querySelectorAll(".hero>.side");const batting=(sides[0]?.querySelector(".team")?.textContent||"").trim();const cards=d.querySelectorAll(".captains>.captain");if(cards.length<2)return;const leftTeam=(cards[0].querySelector(".capteam")?.textContent||"").trim();if(leftTeam && batting && !same(leftTeam,batting)){const parent=cards[0].parentElement;const a=cards[0],b=cards[1];parent.insertBefore(b,a);a.classList.toggle("redcap");b.classList.toggle("redcap");}}catch(e){}}
+function same(a,b){a=a.toLowerCase().replace(/[^a-z0-9]/g,"");b=b.toLowerCase().replace(/[^a-z0-9]/g,"");return a===b||a.includes(b)||b.includes(a)||(a.startsWith("india")&&b.startsWith("ind"))||(a.startsWith("australia")&&b.startsWith("aus"));}
+frame.addEventListener("load",()=>{align();setInterval(align,1000)});
+</script></body></html>
