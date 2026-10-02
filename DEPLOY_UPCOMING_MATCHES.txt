@@ -1,0 +1,2 @@
+Deployment trigger: upcoming India vs West Indies matches are enabled in upcoming.py.
+Updated: 2026-09-30
