@@ -1,0 +1,37 @@
+name: Fix scoreboard status parser
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch main.py
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('main.py')
+          s=p.read_text()
+          old='''            r"Day\\s+\\d+\\s*:\\s*Stumps[^|]*", r"[A-Za-z ]+ won by \\d+ runs",\n            r"[A-Za-z ]+ won by \\d+ wickets"'''
+          new='''            r"Day\\s+\\d+\\s*:\\s*Stumps\\s*[-:]\\s*[^|]{0,120}",\n            r"\\b[A-Za-z][A-Za-z .&-]{0,60}\\s+won by\\s+\\d+\\s+(?:runs|wickets)\\b"'''
+          if old in s:
+              s=s.replace(old,new)
+          else:
+              print('status pattern already patched or source differs')
+          marker='''                    result.update({"title":title, "team1":team1, "team2":team2, "team1_code":team_code(team1), "team2_code":team_code(team2), "team1_flag":team_flag(team1), "team2_flag":team_flag(team2)})'''
+          replacement='''                    result.update({"title":f"{team1} vs {team2}", "team1":team1, "team2":team2, "team1_code":team_code(team1), "team2_code":team_code(team2), "team1_flag":team_flag(team1), "team2_flag":team_flag(team2)})'''
+          if marker in s:
+              s=s.replace(marker,replacement)
+          p.write_text(s)
+          PY
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add main.py
+          git diff --cached --quiet || git commit -m "Fix scoreboard status and title parsing"
+          git push
